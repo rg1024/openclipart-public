@@ -1,0 +1,6 @@
+[submodule "openclipart-game-python"]
+	path = openclipart-game-python
+	url = git@github.com:openclipart/openclipart-game-python.git
+[submodule "packager"]
+	path = packager
+	url = git@github.com:rejon/packager.git
