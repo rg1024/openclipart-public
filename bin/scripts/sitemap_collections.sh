@@ -1,0 +1,2 @@
+#!/bin/bash
+mysql openclipart --disable-column-names -e "select id, set_title, username from set_list_titles;"|awk -F, '{ for (i=1;i<=NF;i++) { gsub(/^[ \t]+|[ \t]+$/,"",$i); gsub(/ /, "%20", $i); if ($i != "") print $i }}'| php -r "echo htmlspecialchars(file_get_contents(\"php://stdin\"));" | awk -F'\t' '{printf("<url><loc>http://openclipart.org/collection/collection-detail/%s/%s/%s</loc></url>\n", $3, $1, $2);}'

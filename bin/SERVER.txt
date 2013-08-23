@@ -1,0 +1,374 @@
+www.openclipart.org - single host
+
+Debian Squeeze
+
+/etc/apache2/sites-enabled/openclipart.org
+
+ DocumentRoot: /srv/www/openclipart.org/htdocs/
+ Logs: /srv/www/openclipart.org/lobs/
+ Include: /srv/www/openclipart.org/conf/openclipart.org.apache.conf
+
+ssl certs from startssl.com
+ /etc/ssl/private/openclipart.org.crt
+ /etc/ssl/private/openclipart.org.key
+
+--- important public URLs
+ google:
+  openclipart.org/collections
+  openclipart.org/tags/symbol
+  openclipart.org/bydate
+  openclipart.org/tags/face
+ api:
+  (json) openclipart.org/search/json/?query=christmas&page=1
+  (rss) openclipart.org/api/search/?query=water&page=4
+        openclipart.org/media/feed/rss/egypt
+        openclipart.org/media/feed/rss/
+        openclipart.org/rss/top.xml
+        openclipart.org/rss/stats-clipart-monthly.xml
+        openclipart.org/rss/comments.xml
+        openclipart.org/rss/stats-top-contribs-monthly.xml
+	openclipart.org/rss/collections.xml
+
+--- API users
+ Inkscape
+  http://bazaar.launchpad.net/~inkscape.dev/inkscape/trunk/view/head:/src/ui/dialog/ocaldialogs.cpp#L1080
+  openclipart.org/media/feed/rss/_tag_
+
+--- uploads
+ ~# cd /srv/www/openclipart.org/public/clipart
+ ~# find . -name '*.svg*' -print0|xargs -0 stat --format '%y %n'|grep ^2013|wc -l
+
+--- mysql
+ database: openclipart
+ user: openclipart
+
+ ~# cat /etc/mysql/conf.d/openclipart.cnf
+ [mysqld]
+ query_cache_size = 256M
+ table_cache = 1024
+ join_buffer_size = 1M
+
+ * delete user who has not uploaded clipart
+ ~# mysql openclipart -e "delete from aiki_users where username = 'some_user';"
+
+ * get ideas for tuning server variables
+ ~# mysqltuner
+
+ * dump db (including data, for easy grepping/vi)
+ ~# mysqldump --extended-insert=FALSE --complete-insert openclipart > openclipart-grep.sql
+
+ * dump db (for backup or fast re-import)
+ ~# mysqldump openclipart|bzip2 > openclipart-complete.sql.bz2
+
+ * dump db (table structures only)
+ ~# mysqldump --no-data openclipart > openclipart-nodata.sql
+
+ * restore db
+ ~# mysql -e ‘create database openclipart;’
+ ~# bzcat openclipart-complete.sql.bz2 | mysql openclipart
+
+ * turn user into admin
+ mysql> update aiki_users set user_permissions=1 and usergroup=1 where username='Magirly';
+
+ * list all files in the database
+ ~# mysql openclipart -e "select full_path, filename from ocal_files;"
+
+ * delete all pd_issue uploads (svgs and related pngs)
+ ~# mysql openclipart --disable-column-names -e "select concat(full_path, filename) from ocal_files where upload_tags like '%pd_issue%' or upload_published = 0;" | ./svg_delete.sh
+
+ * delete pd_issue database entries
+ ~# mysql openclipart --disable-column-names -e "delete from ocal_files where upload_tags like '%pd_issue%' or upload_published = 0;"
+
+ * manually adding an upload for existing user
+ mysql> INSERT INTO `ocal_files`
+       		 (`id`, `filename`, `full_path`, `file_nicname`, `file_filesize`,
+       		  `upload_user`, `user_name`, `upload_name`, `upload_config`, `upload_date`,
+       		  `sha1`, `upload_published`)
+	 VALUES
+       		 (DEFAULT, 'village_people_construction_worker.svg','people//', 'svg', 55223,
+       		  '716444', 'Regaserig', 'village people construction worker', 'media', '2013-03-08 01:02:03',
+       		 '0', 1);
+ mysql> UPDATE ocal_files SET link = CONCAT('village-people-construction-worker-by-regaserig-', LAST_INSERT_ID()) WHERE id = LAST_INSERT_ID();
+
+ * rename file in database
+ mysql> UPDATE ocal_files SET filename = 'NOTEBOOK.svg' where id = 65555;
+
+ * delete file from database
+ mysql> DELETE FROM ocal_files WHERE id = 175602;
+
+ * find all .svg with dos line endings (enter ^M as ctrl-v ctrl-m)
+ ~# find . -iname '*.svg' -print0 | xargs -0 grep -IUrl --color "^M"
+
+ * convert all dos files to unix (enter ^M as ctrl-v ctrl-m)
+ ~# find . -iname '*.svg' -print0 | xargs -0 grep -IUrlZ --color "^M" | xargs -0 fromdos -p
+
+ * find all svgs with embedded images
+ ~# find . -iname '*.svg' -print0 | xargs -0 grep -l -P "<image( |$)"
+
+  <image xlink:href="data:image/jpeg;base64,...
+  <image xlink:href="data:image/png;base64,...
+  <image xlink:href="data:;base64,..."
+  <image xlink:href="/home/rileyp/..."
+  <image xlink:href="C:\Documents and Settings\..."
+  <image sodipodi:absref="/home/aki/..."
+
+  note: <imageReplacement ? (Anonymous/Anonymous_Picture_frame.svg)
+  note: <foreignObject
+
+ * list all tags (unique and sorted)
+ ~# mysql openclipart --disable-column-names -e "select upload_tags from ocal_files;"|awk -F, '{ for (i=1;i<=NF;i++) { gsub(/^[ \t]+|[ \t]+$/,"",$i); gsub(/ /,"%20",$i); if ($i != "") print $i }}'|sort -u
+
+ * sort tags by usage
+ ~# mysql openclipart --disable-column-names -e "select upload_tags from ocal_files;"|awk -F, '{ for (i=1;i<=NF;i++) { gsub(/^[ \t]+|[ \t]+$/,"",$i); gsub(/ /,"%20",$i); if ($i != "") print $i }}'|sort|uniq -c|sort -r -n
+
+ * fix "people//" in full_path
+ mysql> UPDATE ocal_files SET full_path = "people/" WHERE full_path = "people//";
+
+ * tarball of filelist
+ ~# cat filelist.txt | tar -cj -T - -f filelist.tar.bz2
+
+ * adhoc release (bz2 tarball of all .svgs)
+ ~# find people/ -iname '*.svg' -print0|tar -cj --null -T - -f /srv/www/openclipart.org/htdocs/adhoc_release_all_svgs_`date +%Y-%m-%d`.tar.bz2
+
+ * number of uploads in one year
+ ~# mysql openclipart -e 'select upload_date from ocal_files;'|grep ^2013|wc -l
+  2006: 3328
+  2007: 4103
+  2008: 4001
+  2009: 3727
+  2010: 9926
+  2011: 9234
+  2012: 5995
+  2013: 1518 (until 2013-03-22)
+
+ * list files by modified date
+ ~# find people/ -type f -name '*.svg' -print0 | xargs -0 stat --format '%y %n' | grep ^2008 | wc -l
+
+ * validate xml of all svgs
+ ~# find people/ -iname '*.svg' -print0|xargs -0 -I {} bash -c "xmlstarlet val --list-bad \"{}\"" 2>/dev/null > svgs_with_invalid_xml.txt
+
+ * find id for filename
+ ~# mysql openclipart -e 'select id from ocal_files where concat(full_path,filename) = "people/helen.ray92/jsa.svg";'
+
+ * copy all metadata to stdout
+ ~# xmlstarlet sel -t -c '/svg:svg/svg:metadata' _filename_
+
+ * update one element (which must already exist)
+ ~# xmlstarlet ed -u '/svg:svg/svg:metadata/rdf:RDF/cc:Work/dc:title' -v updated_title _filename_
+
+ * extract metadata
+ ~# find people/ -iname '*.svg' -print0 | xargs -0 -I {} bash -c "xmlstarlet sel -N svg=http://www.w3.org/2000/svg -t -c /svg:svg/svg:metadata \"{}\" > \"{}.upload-metadata\""
+ ~# find people/ -name '*.upload-metadata' -size 0 -exec rm {} \;
+
+ * tarball metadata
+ ~# find people/ -name '*.upload-metadata' -print0 | tar -cj --null -T - -f upload_metadata.tar.bz2
+
+ * delete extracted metadata
+ ~# find people/ -name '*.upload-metadata' -exec rm {} \;
+
+ * replace common adobe entities
+ ~# sed -e 's|&ns_flows;|http://ns.adobe.com/Flows/1.0/|' -e 's|&ns_flows;|http://ns.adobe.com/Flows/1.0/|' -e 's|&ns_extend;|http://ns.adobe.com/Extensibility/1.0/|' -e 's|&ns_ai;|http://ns.adobe.com/AdobeIllustrator/10.0/|' -e 's|&ns_graphs;|http://ns.adobe.com/Graphs/1.0/|' -e 's|&ns_vars;|http://ns.adobe.com/Variables/1.0/|' -e 's|&ns_imrep;|http://ns.adobe.com/ImageReplacement/1.0/|' -e 's|&ns_sfw;|http://ns.adobe.com/SaveForWeb/1.0/|' -e 's|&ns_custom;|http://ns.adobe.com/GenericCustomNamespace/1.0/|' -e 's|&ns_adobe_xpath;|http://ns.adobe.com/XPath/1.0/|' -e 's|&ns_svg;|http://www.w3.org/2000/svg|' -e 's|&ns_xlink;|http://www.w3.org/1999/xlink|'
+
+ * find non-UTF-8 files
+ ~# find people/ -name '*.svg' -print0 | xargs -0 grep "encoding=" | grep -v -i "UTF-8" > encoding_not_utf8.txt
+
+ * convert list of files from ISO-8859-1 to UTF-8
+ ~# cat filelist.txt | sed -e 's/:.*//' | xargs -I {} ./xml_ISO8859-1_to_UTF8.sh {} 2>&1 | tee log.txt
+
+ * find files with namespace-entities
+ ~# find people/ -name '*.svg' -print0 | xargs -0 grep -l '&ns_' > namespace_entities.txt
+
+ * resolve entity references
+ ~# cat filelist.txt | xargs -I {} ./xml_noent.sh {} 2>&1 | tee log.txt
+
+ * process selected files with ocalmeta_all.php
+ ~# cat filelist.txt | awk 'NR > 0 && NR <= 10' | ./ocalmeta_all.php 2>&1 | tee meta.log
+
+ * update metadata in all svgs
+ ~# ./ocalmeta_db2files.sh 2>&1 | tee ocalmeta.log
+
+ * create png
+ ~# rsvg-convert -h 800 1365501729.svg > 800px-1365501729.png
+
+ * list tags
+ ~# mysql openclipart --disable-column-names -e "select id, upload_tags from ocal_files;" > tags.txt
+
+ * delete files from text file (one path per line)
+   TODO: doesn't work with ( or ) in filename
+ ~# xargs -d '\n' -I{} bash -c 'rm {}' < filelist.txt
+
+ * recreate default png sizes (250px, 800px, 2000px) for all svg (will create .png.rsvg extensions)
+ ~# find people/ -name '*.svg' -exec node png_rsvg_defaultpx.js {} \; 2>&1 | tee rsvg_default.log
+
+ * recreate non-default png sizes all svg (will create .png.rsvg extensions)
+ ~# find people/ -name '*.svg' -exec node png_rsvg_otherpx.js {} \; 2>&1 | tee rsvg_other.log
+
+ * pngcrush from .rsvg into .png and add metadata to .png in the process
+ ~# node png_metadata.js 2>&1 | tee pngmeta.log
+
+ * total size of .svg files
+ ~# find people/ -name '*.svg' -printf "%s\n" | paste -sd+ - | bc
+
+ * delete 0-size files
+ ~# find people/ -size 0 -exec rm {} \;
+
+ * check png validity
+ ~# find people/ -name '*.png' -exec pngcheck -q {} \; 2>&1 | tee pngcheck.log
+
+ * fixing mysql collation problem
+ mysql> show table status;
+ mysql> alter table set_list_titles convert to character set utf8 collate utf8_general_ci;
+ mysql> ALTER DATABASE openclipart DEFAULT COLLATE utf8_general_ci;
+ mysql> show full columns from ocal_files;
+
+ * count files modified since ??? minutes
+ ~# find people/ -name '*.png' -mmin -???|wc -l
+
+ * find userid
+ mysql> select * from aiki_users where username = 'tempjim';
+
+ * reset user password
+ ~# echo -n some_new_password|md5sum|awk '{printf("%s", $1);}'|md5sum
+ mysql> update aiki_users set password = "..." where username = 'Nizips';
+
+ * list widgets
+ mysql> select id, widget_name from aiki_widgets;
+
+ * edit a widget ('widget' for unauthorized, 'if_authorized' for authorized)
+ ~# mysql openclipart -e "select widget into dumpfile '/tmp/edit.txt' from aiki_widgets where id = 145;"
+ ~# vim /tmp/edit.txt
+ ~# mysql openclipart -e "update aiki_widgets set widget = LOAD_FILE('/tmp/edit.txt') where id = 145;"
+
+In addition to github.com/openclipart/openclipart.git, the following
+repos are used:
+    git@git.fabricatorz.com:openclipart.org
+    git@git.fabricatorz.com:openclipart-private
+    git@git.fabricatorz.com:openclipart-public
+    git@git.fabricatorz.com:fabricatorz-bin-www
+    https://github.com/aikiframework/json.git
+    https://github.com/jcubic/json-rpc.git
+    git://github.com/rubys/venus.git
+
+--- node.js
+ * had to install node.js from source because Debian packaging is way behind node.js development
+ * https://github.com/joyent/node/wiki/Installation
+ ~# bash < <(curl http://h3manth.com/njs)
+ ~# npm install mysql async
+
+--- xml
+ * common namespaces in svg vector graphics
+
+ xmlns:svg="http://www.w3.org/2000/svg"
+ xmlns:dc="http://purl.org/dc/elements/1.1/"
+ xmlns:cc="http://web.resource.org/cc/"
+ xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+ xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+ xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+ xmlns:xlink="http://www.w3.org/1999/xlink"
+ xmlns:xap="http://ns.adobe.com/xap/1.0/"
+ xmlns:xapGImg="http://ns.adobe.com/xap/1.0/g/img/"
+ xmlns:xapMM="http://ns.adobe.com/xap/1.0/mm/"
+ xmlns:xapTPg="http://ns.adobe.com/xap/1.0/t/pg/"
+ xmlns:stDim="http://ns.adobe.com/xap/1.0/sType/Dimensions#"
+ xmlns:xapG="http://ns.adobe.com/xap/1.0/g/"
+ xmlns:v="http://schemas.microsoft.com/visio/2003/SVGExtensions/"
+
+--- filesystem
+
+People and uploaded files in /srv/www/openclipart.org/htdocs/people
+
+--- varnish
+
+ * purge entire cash
+ ~# varnishadm -T :6082 "ban.url /"
+
+Modified /etc files:
+ 2013-02-26 23:59:39 ./ssh/sshd_config
+ 2013-02-25 03:29:28 ./.etckeeper
+ 2013-02-25 03:29:26 ./ld.so.cache
+ 2013-02-25 03:29:26 ./init.d/.depend.stop
+ 2013-02-25 03:29:26 ./init.d/.depend.start
+ 2013-02-25 03:29:26 ./init.d/.depend.boot
+- 2013-02-16 - updated ssl cert
+ 2013-02-16 20:29:26 ./ssl/private/openclipart.org.key
+ 2013-02-16 20:29:26 ./ssl/private/openclipart.org.crt
+ 2013-02-16 20:27:28 ./aliases.db
+ 2013-02-16 20:27:26 ./aliases
+ 2013-02-14 05:00:00 ./debian_version
+ 2013-02-05 08:30:08 ./shadow
+ 2013-02-05 07:34:13 ./group
+ 2013-02-05 07:33:37 ./passwd
+ 2013-01-16 02:58:20 ./gshadow
+ 2013-01-13 06:39:40 ./logwatch/conf/logwatch.conf
+ 2013-01-09 19:26:22 ./default/varnish
+ 2013-01-09 19:21:05 ./varnish/fabricatorz.vcl
+ 2012-11-18 13:55:14 ./network/run/ifstate
+ 2012-11-18 13:55:12 ./mtab
+ 2012-11-18 13:50:41 ./inittab
+ 2012-11-18 13:50:41 ./fstab
+ 2012-11-02 03:10:38 ./timezone
+ 2012-11-02 03:10:38 ./localtime
+ 2012-10-01 18:52:55 ./locale.gen
+ 2012-10-01 18:51:05 ./apt/trusted.gpg
+ 2012-10-01 18:51:05 ./apt/trustdb.gpg
+ 2012-09-24 19:09:08 ./mailcap
+ 2012-09-24 19:08:59 ./papersize
+ 2012-08-21 18:59:56 ./default/varnishlog
+ 2012-08-20 06:52:53 ./init.d/varnishncsa
+ 2012-08-20 06:52:53 ./default/varnishncsa
+ 2012-07-27 18:42:56 ./sudoers
+ 2012-07-23 05:24:52 ./postfix/virtual.db
+ 2012-07-23 05:24:50 ./postfix/virtual
+ 2012-06-15 11:06:48 ./postfix/main.cf
+ 2012-05-29 13:01:51 ./mysql/my.cnf
+ 2012-05-24 11:22:17 ./php5/conf.d/xhprof.ini
+ 2012-05-15 13:40:28 ./cron.d/sphinxsearch
+ 2012-05-08 06:41:41 ./pear/pear.conf
+ 2012-04-06 17:18:17 ./fail2ban/action.d/sendmail-buffered.conf
+ 2012-04-06 17:18:17 ./fail2ban/action.d/mynetwatchman.conf
+ 2012-04-06 17:18:17 ./fail2ban/action.d/mail-buffered.conf
+ 2012-04-06 17:18:17 ./fail2ban/action.d/dshield.conf
+ 2012-04-01 03:13:44 ./apache2/sites-available/default-ssl
+ 2012-04-01 03:13:44 ./apache2/sites-available/default.dpkg-dist
+ 2012-03-24 16:16:34 ./network/if-up.d/mountnfs
+ 2012-03-24 16:09:56 ./init.d/skeleton
+ 2012-03-24 16:09:56 ./init.d/rcS
+ 2012-03-24 16:09:56 ./init.d/rc
+ 2012-03-23 07:58:43 ./php5/apache2/php.ini
+ 2012-03-15 18:47:46 ./sphinxsearch/sphinx.conf
+ 2012-02-28 00:13:24 ./resolv.conf
+ 2012-01-31 19:21:04 ./default/varnishlog.dpkg-old
+ 2012-01-31 19:02:07 ./apache2/apache2.conf
+ 2012-01-31 06:09:43 ./php5/cli/php.ini
+ 2012-01-04 13:38:35 ./apache2/sites-available/openclipart.org
+ 2011-12-16 17:53:58 ./default/sphinxsearch
+ 2011-12-16 17:53:11 ./hosts
+ 2011-12-16 13:50:04 ./logrotate.d/apache2
+ 2011-12-16 13:26:07 ./network/interfaces
+ 2011-12-16 13:20:05 ./X11/Xwrapper.config
+ 2011-12-16 13:20:05 ./defoma/config/x-ttcidfont-conf.conf
+ 2011-12-16 13:20:00 ./defoma/fontconfig.subst-rule
+ 2011-12-16 13:19:14 ./php5/conf.d/apc.ini
+ 2011-12-16 13:02:04 ./default/varnish.dpkg-old
+ 2011-12-16 13:01:45 ./logrotate.d/varnish
+ 2011-12-16 12:57:44 ./shells
+ 2011-12-16 12:42:40 ./apache2/sites-available/default
+ 2011-12-16 12:42:09 ./apache2/ports.conf
+ 2011-12-16 12:40:48 ./varnish/secret
+ 2011-12-16 12:40:16 ./apt/sources.list.d/varnish.list
+ 2011-12-16 12:39:11 ./hostname
+ 2011-12-16 12:38:54 ./cron.d/apticron
+ 2011-12-16 12:38:53 ./apticron/apticron.conf
+ 2011-12-16 12:38:50 ./postfix/master.cf
+ 2011-12-16 12:38:50 ./postfix/dynamicmaps.cf
+ 2011-12-16 12:38:50 ./mailname
+ 2011-12-16 12:38:49 ./ssl/private/ssl-cert-snakeoil.key
+ 2011-12-16 12:38:49 ./ssl/certs/ssl-cert-snakeoil.pem
+ 2011-12-16 12:38:45 ./apache2/httpd.conf
+ 2011-12-16 12:38:16 ./mysql/debian.cnf
+ 2011-12-16 12:35:42 ./ssh/ssh_host_dsa_key.pub
+ 2011-12-16 12:35:42 ./ssh/ssh_host_dsa_key
+ 2011-12-16 12:35:41 ./ssh/ssh_host_rsa_key.pub
+ 2011-12-16 12:35:41 ./ssh/ssh_host_rsa_key
+ 2011-12-16 12:35:41 ./ssh/ssh_host_key.pub
+ 2011-12-16 12:35:41 ./ssh/ssh_host_key
