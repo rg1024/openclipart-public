@@ -115,6 +115,9 @@ ssl certs from startssl.com
   note: <imageReplacement ? (Anonymous/Anonymous_Picture_frame.svg)
   note: <foreignObject
 
+ * find IDs of all svgs with embedded images
+ ~# find . -iname '*.svg' -print0 | xargs -0 grep -l -P "<image( |$)" | xargs -I {} bash -c "mysql openclipart --disable-column-names -e 'select id from ocal_files where concat(full_path,filename) = \"{}\";'"
+
  * list all tags (unique and sorted)
  ~# mysql openclipart --disable-column-names -e "select upload_tags from ocal_files;"|awk -F, '{ for (i=1;i<=NF;i++) { gsub(/^[ \t]+|[ \t]+$/,"",$i); gsub(/ /,"%20",$i); if ($i != "") print $i }}'|sort -u
 
@@ -238,6 +241,9 @@ ssl certs from startssl.com
  ~# mysql openclipart -e "select widget into dumpfile '/tmp/edit.txt' from aiki_widgets where id = 145;"
  ~# vim /tmp/edit.txt
  ~# mysql openclipart -e "update aiki_widgets set widget = LOAD_FILE('/tmp/edit.txt') where id = 145;"
+
+ * scale svg bounding box to content
+ ~# inkscape --verb=FitCanvasToDrawing --verb=FileSave --verb=FileQuit -f some_file.svg
 
 In addition to github.com/openclipart/openclipart.git, the following
 repos are used:
