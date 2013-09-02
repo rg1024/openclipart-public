@@ -2,20 +2,24 @@
 
 # used to get pdf or svg off a webpage in one go
 
+# test: mlkonline.net/images.html
+
 ALLOWED=pdf,svg,png,gif,jpg,jpeg
 SITE=
-
-if [ -n "$1" ];
-then :
-    ALLOWED="$1"
-fi
+OPTS="-r -H"
+# OPTS="-nd -r -l1 -p -np"
 
 if [ -n "$2" ];
 then :
-    SITE="$2"
+    ALLOWED="$2"
+fi
+
+if [ -n "$1" ];
+then :
+    SITE="$1"
 else :
     exit 1;
 fi
 
 
-wget -nd -r -l1 -p -np -A "$ALLOWED" -e robots=off "$2"
+wget $OPTS -A "$ALLOWED" -e robots=off "$1"
