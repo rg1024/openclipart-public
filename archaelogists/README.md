@@ -1,20 +1,28 @@
-Public Domain MINERS
-====================
+Clipart Archaelogists
+=====================
 
-Miners are people who mine the web for resources, looking to find the lost 
-gold. In our case, we are looking for public domain images that we can put
-into Openclipart and/or convert to Openclipart.
+Archaelogists are people who search the web for resources, looking to find the 
+lost artifacts and gold. In our case, we are looking for public domain images 
+that we can put into Openclipart and/or convert to Openclipart.
 
 What follows are some lists of sources to mine. We should try to be somewhat
 systematic about mining the clipart.
 
+For mining the past for usable clipart:
+
+* http://openclipart.org/for/archaelogists
+
+For making new clipart, see: 
+
+* http://openclipart.org/for/artists
+
 Sources
 =======
 
-<h2 class="cleartotal">Public Domain Resources for Mining</h2>
+<h2 class="cleartotal">Public Domain Resources for Archaelogists</h2>
 
 <h3>US Government Public Domain Images</h3>
-<p>A great source of public domain imagery is the United States goverment. All artwork produced by the US government and its many departments are open to be mined for the Open Clip Art Library.<br><br>
+<p>A great source of public domain imagery is the United States goverment. All artwork produced by the US government and its many departments are open for archaelogy.<br><br>
 <i>According to the United States Code Title 17, Section 105, copyright protection is not provided for any work produced by the United States Government. However, if the government document contains any materials produced by sources other than the United States Government, this material may be protected by copyright. You will need to contact the producer of the material in order to obtain permission or details on the information it contains.</i>
 <br><br>
 So this means, that even though a US government department has created images, you still need to contact them to ensure that there is <b>absolutely</b> no copyright on the artwork.
