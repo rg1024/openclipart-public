@@ -338,3 +338,32 @@ So this means, that even though a US government department has created images, y
                                                                                                                          </li><li> <a href="http://www.archive.org/details/americana" title="http://www.archive.org/details/americana">http://www.archive.org/details/americana</a>
                                                                                                                          </li><li> <a href="http://link.library.utoronto.ca/booksonline/" title="http://link.library.utoronto.ca/booksonline/">http://link.library.utoronto.ca/booksonline/</a>
                                                                                                                          </li></ul>
+
+                                                                                Pete's Ideas
+============
+
+Traces of people's old photographs, 
+Historic Figures
+Silhouettes
+Dot to dot drawings
+Coloring book drawings
+Fashion drawings from magazines pre copyright
+Fashion patterns pre copyright 
+Fabric textures from antique furniture 
+Shadow puppets
+Body parts for gluing together for a kids toy
+Paper dolls
+Paper doll clothes
+Finger puppets
+Backgrounds
+Landscapes
+Wallpaper (literally) from pre copyright
+
+Copy an entire visual dictionary pre-copyright if it exists I have one from the 80s and it's amazing http://visual.merriam-webster.com/
+
+Hand written recipies from family archives Openclipart cook book
+Old woodblooks (scan and trace)
+Old lino cuts (scan and trace)
+Illumination from books before copyright http://en.wikipedia.org/wiki/Illuminated_manuscript
+
+
