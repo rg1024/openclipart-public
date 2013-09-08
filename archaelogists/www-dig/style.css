@@ -1,0 +1,68 @@
+body {
+    padding: 1%;
+    margin: 0;
+    font-family: helvetica, arial, sans-serif;
+    font-size: 10pt;
+    line-height: 12pt;
+}
+header {
+    height: 5%;
+    background-color: #eee;
+    padding: 1%;
+    margin-bottom: 1%;
+}
+header input#url {
+    width: 50%;
+}
+
+.digframe {
+    display: block;
+    width: 46%;
+    height: 84%;
+    border: 2px solid black;
+    overflow: scroll;
+    padding: 1%;
+}
+
+#urlframe {
+    position: absolute;
+    bottom: 1%;
+    left: 1%;
+}
+
+#twkframe {
+    position: absolute;
+    right: 1%;
+    bottom: 1%;
+}
+
+img.thumb {
+    width: 100%;
+}
+
+h3 {
+    background-color: #eee;
+    padding: 2%;
+    margin-top: 0;
+}
+
+.imagesection {
+    padding: 0;
+    margin: 0 0 70px 0;
+}
+
+input.tags,
+input.title {
+    width: 100%;
+    clear: both;
+}
+textarea.description {
+    width: 100%;
+    clear: both;
+}
+
+a.caption {
+    margin: 10px auto;
+    display: block;
+    clear: both;
+}

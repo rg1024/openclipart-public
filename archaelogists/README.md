@@ -339,7 +339,9 @@ So this means, that even though a US government department has created images, y
                                                                                                                          </li><li> <a href="http://link.library.utoronto.ca/booksonline/" title="http://link.library.utoronto.ca/booksonline/">http://link.library.utoronto.ca/booksonline/</a>
                                                                                                                          </li></ul>
 
-                                                                                Pete's Ideas
+
+
+Pete's Ideas
 ============
 
 Traces of people's old photographs, 
@@ -367,3 +369,14 @@ Old lino cuts (scan and trace)
 Illumination from books before copyright http://en.wikipedia.org/wiki/Illuminated_manuscript
 
 
+
+Jon's Tool Ideas
+================
+
+* One idea is to make some form of chrome extension, or javascript droplet
+  or some form of ajax'y webpage script so you can enter in a url
+  and then the images or other files you regex for on the page then 
+  are pulled onto a separate pane. On that separate pane is the image,
+  then title, description fields and then you can submit at the bottom
+  of the page and also set per media which ones you will send with 
+  the current Openclipart email api to send multiple files.
