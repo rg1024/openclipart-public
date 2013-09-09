@@ -297,6 +297,28 @@ function curl_get_file_contents($URL)
     else return FALSE;
 }
 
+
+function curl_save_file($image_url, $filename)
+{
+    $savepath = "/tmp/$filename";
+
+    // print_r($savepath);
+    if ( file_exists($savepath) )
+        return false;
+
+    $ch = curl_init();
+    $fp = fopen($savepath , 'wb');
+    curl_setopt($ch, CURLOPT_URL, $image_url);
+    curl_setopt($ch, CURLOPT_FILE, $fp);
+    curl_setopt($ch, CURLOPT_HEADER, 0);
+    curl_exec($ch);
+    curl_close($ch);
+    fclose($fp);
+
+    return $savepath;
+
+}
+
 function split_url( $url, $decode=TRUE )
 {
     $xunressub     = 'a-zA-Z\d\-._~\!$&\'()*+,;=';
@@ -425,5 +447,30 @@ function join_url( $parts, $encode=TRUE )
     return $url;
 }
 
+function get_tags ($tags)
+{
+    $output = '';
+    foreach ($tags as $t)
+    {
+        if ( empty($t) )
+            continue;
+        $output .= "#$t ";
+    }
+    return $output;
+}
+
+function mailer ( $to, $from, $subject, $message ) 
+{
+
+    # $to      = 'nobody@example.com';
+    # $subject = 'the subject';
+    # $message = 'hello';
+    $headers =   "From: $from" . "\r\n" .
+                 "Reply-To: $from" . "\r\n" .
+                 'X-Mailer: PHP/' . phpversion();
+
+    mail($to, $subject, $message, $headers);
+
+}
 
 ?>
