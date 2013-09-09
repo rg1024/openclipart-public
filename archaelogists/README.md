@@ -339,8 +339,6 @@ So this means, that even though a US government department has created images, y
                                                                                                                          </li><li> <a href="http://link.library.utoronto.ca/booksonline/" title="http://link.library.utoronto.ca/booksonline/">http://link.library.utoronto.ca/booksonline/</a>
                                                                                                                          </li></ul>
 
-
-
 Pete's Ideas
 ============
 
@@ -368,7 +366,7 @@ Old woodblooks (scan and trace)
 Old lino cuts (scan and trace)
 Illumination from books before copyright http://en.wikipedia.org/wiki/Illuminated_manuscript
 
-
+###
 
 Jon's Tool Ideas
 ================
@@ -380,3 +378,17 @@ Jon's Tool Ideas
   then title, description fields and then you can submit at the bottom
   of the page and also set per media which ones you will send with 
   the current Openclipart email api to send multiple files.
+
+Tool Ideas
+----------
+
+* enter URL sniff all media on page and list out all media with suggested title, description, tags account username to attach an image to...
+
+
+###
+
+Jon Sites to Explore
+--------------------
+
+* http://www.uscg.mil/top/downloads/models.asp
+* http://en.wikipedia.org/wiki/Wikipedia:Public_domain_image_resources
