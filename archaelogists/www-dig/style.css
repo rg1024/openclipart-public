@@ -66,3 +66,12 @@ a.caption {
     display: block;
     clear: both;
 }
+
+.alert {
+    color: red;
+}
+
+.sep {
+    border: 1px solid gray;
+    width: 100%;
+}

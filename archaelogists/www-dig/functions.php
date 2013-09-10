@@ -302,9 +302,10 @@ function curl_save_file($image_url, $filename)
 {
     $savepath = "/tmp/$filename";
 
+    // so what it overwrites something
     // print_r($savepath);
-    if ( file_exists($savepath) )
-        return false;
+    // if ( file_exists($savepath) )
+    //    return false;
 
     $ch = curl_init();
     $fp = fopen($savepath , 'wb');
@@ -314,7 +315,7 @@ function curl_save_file($image_url, $filename)
     curl_exec($ch);
     curl_close($ch);
     fclose($fp);
-
+    // print_r($savepath);
     return $savepath;
 
 }
@@ -472,5 +473,96 @@ function mailer ( $to, $from, $subject, $message )
     mail($to, $subject, $message, $headers);
 
 }
+
+function remail($to,$from,$subject,$message,$files)
+{
+    // print_r($files);
+    $from_pure = $from;
+    // email fields: to, from, subject, and so on
+    //$from = $from; 
+    // $message = date("Y.m.d H:i:s")."\n".count($files)." attachments";
+    // $headers = "From: $from";
+    $headers =   "From: $from" . "\r\n" .
+                 "Reply-To: $from" . "\r\n" .
+                 'X-Mailer: PHP/' . phpversion();
+
+    // boundary 
+    $semi_rand = md5(time()); 
+    $mime_boundary = "==Multipart_Boundary_x{$semi_rand}x"; 
+
+    // headers for attachment 
+    $headers .= "\nMIME-Version: 1.0\n" . "Content-Type: multipart/mixed;\n" . " boundary=\"{$mime_boundary}\""; 
+
+    // multipart boundary 
+    $message = "--{$mime_boundary}\n" . "Content-Type: text/plain; charset=\"iso-8859-1\"\n" .
+    "Content-Transfer-Encoding: 7bit\n\n" . $message . "\n\n"; 
+
+    // preparing attachments
+    for($i=0;$i<count($files);$i++){
+        if(is_file($files[$i])){
+            $message .= "--{$mime_boundary}\n";
+            $fp =    @fopen($files[$i],"rb");
+            $data =    @fread($fp,filesize($files[$i]));
+            @fclose($fp);
+            $data = chunk_split(base64_encode($data));
+            $message .= "Content-Type: application/octet-stream; name=\"".basename($files[$i])."\"\n" . 
+            "Content-Description: ".basename($files[$i])."\n" .
+            "Content-Disposition: attachment;\n" . " filename=\"".basename($files[$i])."\"; size=".filesize($files[$i]).";\n" .
+            "Content-Transfer-Encoding: base64\n\n" . $data . "\n\n";
+        }
+    }
+    $message .= "--{$mime_boundary}--";
+    $returnpath = "-f" . $from_pure;
+    $ok = @mail($to, $subject, $message, $headers, $returnpath); 
+    if($ok){ return $i; } else { return 0; }
+}
+
+// @returns count
+function print_results ($tags, $base_url, $regex, $attrib, $ct)
+{
+        foreach ($tags as $tag) {
+            $p = url_to_absolute( $base_url, $tag->getAttribute($attrib) );
+            $suggested_title =  basename($p);
+            $info = pathinfo($p);
+            // skip files types we are not looking for
+            if ( ! preg_match( "/$regex/i", $info['extension'] ) )
+                continue;
+            // print_r($info['extension']);
+            $urlparts = parse_url($info['dirname']);
+            $mytags = explode('/', $urlparts['path']);
+            $mytags[] = $urlparts['host'];
+            $suggested_title =  $info['filename'];
+            $mytags[] = $suggested_title;
+            $mytags[] = "dig";
+            $mytags[] = "publicdomain";
+            $mytags[] = "pd";
+            $suggested_title = strtr($suggested_title, array('_'=>' ',
+                                                             '-'=>' '));
+            $tagstring = get_tags($mytags);
+
+            $getdate = date('Y-m-d H:i:s');
+
+            $description = "\nThis public domain image comes from $base_url and as of $getdate is this file, $p.";
+
+echo <<< END
+<div class="imagesection">
+<h3>Image $ct</h3>
+<a href="$p"><img class="thumb" src="$p" alt="" /></a>
+<a class="caption" href="$p">$p</a>
+<input type="hidden" name="url-$ct" value="$p" />
+<input class="check" type="checkbox" name="include-$ct" value="" />
+<label for="include">Yes, Include in PD Submission</label>
+<input class="title" type="text" name="title-$ct" placeholder="The Image $ct's Title" value="$suggested_title" />
+<textarea class="description" name="description-$ct" placeholder="This is the Image $ct's description">$description</textarea>
+<input class="tags" type="text" name="tags-$ct" placeholder="#change #Default #tags" value="$tagstring" />
+</div>
+END;
+
+            $ct++;
+        } 
+        return $ct;
+}
+
+
 
 ?>

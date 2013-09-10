@@ -16,10 +16,14 @@
         ! empty($_REQUEST['emailfrom']) && ! empty($_REQUEST['emailto']) )
     {
 
-        $emailto    = "wanglizhong@rejon.org"; 
-        $emailfrom  = "jon@rejon.org";
+        // $emailto    = "wanglizhong@rejon.org"; 
+        $emailto        = $_REQUEST['emailto'];
+        // $emailfrom  = "jon@rejon.org";
+        $emailfrom      = $_REQUEST['emailfrom'];
 
         $fields = array('url', 'title', 'description', 'tags');
+
+        echo "<h3>Saving and Sending Files.</h3>";
 
         $lct = $_REQUEST['ct']; 
         for ($ct = 0; $ct < $lct; $ct++)
@@ -34,18 +38,29 @@
             $my_image_url   = $_REQUEST["url-$ct"];
             $my_image_name  = basename($my_image_url);
 
+
             foreach ($fields as $f)
             {
-                echo "<p>$f: " . $_REQUEST["$f-$ct"] . "</p>";
+                echo "<p><strong>$f:</strong> " . $_REQUEST["$f-$ct"] . "</p>";
             }
+            
             $fn = curl_save_file($_REQUEST["url-$ct"], $my_image_name);
-            // test if filename is wrong, then don't send
-
-            // NEXT need to add in some mailer that can handle 
-            // attachments, and send this attachment to the mailing script
-            // print_r($fn);
+            if ( !empty($fn) ) 
+                echo "<p><strong>SAVED:</strong> SAVED.</p>";
+            else
+                echo "<p class=\"alert\"><strong>SAVED:</strong> NOT SAVED. Check it out.</p>";
+                
             // mailer($emailto, $emailfrom, $my_subject, $my_description);
-            // echo $ct;
+            $sent_ok = remail($emailto, $emailfrom, 
+                              $my_subject, $my_description, array($fn) );
+            if ( !empty($sent_ok) ) 
+                echo "<p><strong>SENT:</strong> SENT.</p>";
+            else
+                echo "<p><strong class=\"alert\">SENT:</strong> NOT SENT. Check it out.</p>";
+
+            echo '<hr class="sep" />';
+
+
         }
 // echo "<strong>SEND</strong><br />\n<pre>";
 // print_r( $_REQUEST );
@@ -54,74 +69,55 @@
     else if (isset($_REQUEST['url']))
     {
 
-echo "<strong>URL</strong><br />\n<pre>";
-print_r( $_REQUEST );
-echo "</pre>";
+echo "<strong>URL</strong>: " . $_REQUEST['url'] . "<br />\n";
+echo "<strong>REG</strong>: " . $_REQUEST['regex'] . "<br />\n";
+//print_r( $_REQUEST );
+// echo "</pre>";
 
 ?>
 
 <h4>Please review images from the page for submission.</h4>
-<form method="GET" action="dig.php" id="getform">
+<form method="POST" action="dig.php" id="getform">
 <input type="text" id="emailfrom" name="emailfrom" placeholder="Email to submit from" />
 <input type="text" id="emailto" name="emailto" value="upload@openclipart.org" />
 <br />
 <br />
 <?php
-        $base_url = $_REQUEST['url'];
-        $html = file_get_contents($base_url);
+        $base_url   = $_REQUEST['url'];
+        $html       = file_get_contents($base_url);
+        $regex      = $_REQUEST['regex'];
 
         // $domain = dirname($_REQUEST['url']);
 
         $doc = new DOMDocument();
         @$doc->loadHTML($html);
 
-        $tags = $doc->getElementsByTagName('img');
+        // $tags = $doc->getElementsByTagName('img'); 
+        $tags_img   = $doc->getElementsByTagName('img'); 
+        $tags_a     = $doc->getElementsByTagName('a'); 
+        // echo "<pre>";
+        // print_r($tags);
+        // echo "</pre>";
 
         $ct = 0;
-        foreach ($tags as $tag) {
-            $p = url_to_absolute( $base_url, $tag->getAttribute('src') );
-            $suggested_title =  basename($p);
-            $info = pathinfo($p);
-            $urlparts = parse_url($info['dirname']);
-            $tags = explode('/', $urlparts['path']);
-            $tags[] = $urlparts['host'];
-            $suggested_title =  $info['filename'];
-            $tags[] = $suggested_title;
-            $tags[] = "dig";
-            $tags[] = "publicdomain";
-            $tags[] = "pd";
-            $suggested_title = strtr($suggested_title, array('_'=>' '));
-            $tagstring = get_tags($tags);
-
-            $getdate = date('Y-m-d H:i:s');
-
-            $description = "\nThis public domain image comes from $base_url and as of $getdate is this file, $p.";
-
-echo <<< END
-<div class="imagesection">
-<h3>Image $ct</h3>
-<a href="$p"><img class="thumb" src="$p" alt="" /></a>
-<a class="caption" href="$p">$p</a>
-<input type="hidden" name="url-$ct" value="$p" />
-<input class="check" type="checkbox" name="include-$ct" value="" />
-<label for="include">Yes, Include in PD Submission</label>
-<input class="title" type="text" name="title-$ct" placeholder="The Image $ct's Title" value="$suggested_title" />
-<textarea class="description" name="description-$ct" placeholder="This is the Image $ct's description">$description</textarea>
-<input class="tags" type="text" name="tags-$ct" placeholder="#change #Default #tags" value="$tagstring" />
-</div>
-END;
-
-            $ct++;
-        } 
+        $ct = print_results($tags_img,  $base_url, $regex, 'src', $ct);
+        $ct = print_results($tags_a,    $base_url, $regex, 'href', $ct);
+        
+        if ( $ct > 0 )
+        {
 echo <<< ENDER
 <input type="hidden" name="ct" value="$ct" />
     <input name="send" type="submit"       id="submit" value="SEND" />
 </form>
 ENDER;
+        } else {
+            echo "<h4>Sorry, no results. Try again.</h4>\n";
+        }
 
 
 
     } else {
+        echo "<h4>Try a search above, or include the right variables.</h4>";
     }
 ?>
 
