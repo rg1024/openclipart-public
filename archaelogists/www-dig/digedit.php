@@ -3,8 +3,8 @@
 require_once('functions.php');
 
 
-$fields = array('url','summary','image count','tags','access time', 
-                'completion time','name');
+$fields = array('url','summary','image_count','tags','access_time', 
+                'completion_time','name');
 
 
 if ( isset($_REQUEST['save']) && !empty($_REQUEST['mct']) )
@@ -35,6 +35,7 @@ if ( isset($_REQUEST['save']) && !empty($_REQUEST['mct']) )
 
 
 $dig_files = get_dig_file();
+// print_r($dig_files);
 
 ?>
 <html>
@@ -43,7 +44,7 @@ $dig_files = get_dig_file();
 <?php echo 'max_input_vars: ' . ini_get('max_input_vars'); ?>
 <form method="POST" action="digedit.php" id="digedit-form">
 <table id="digtable">
-<tr>
+<tr><td><!-- ct --></td>
 <?php
 foreach ( $fields as $field )
 {

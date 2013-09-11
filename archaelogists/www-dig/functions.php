@@ -599,14 +599,6 @@ function get_dig_file ()
     if (($handle = fopen($digfile, "r")) !== FALSE) {
     while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
         $dig_file_array[] = $data;
-        /*
-        $num = count($data);
-        echo "<p> $num fields in line $row: <br /></p>\n";
-        $row++;
-        for ($c=0; $c < $num; $c++) {
-            echo $data[$c] . "<br />\n";
-        }
-        */
     }
     fclose($handle);
 
@@ -696,9 +688,11 @@ function get_random_dig_url ()
     $ct = 0;
     $url = '';
     do {
-        list($url) = get_random_dig_site();
+
+        list($url,$summary,$image_count, $tags, $access_time, 
+             $completion_time,$name) = get_random_dig_site();
         $ct++;
-    } while ( empty($url) && $ct <= 10 ) ;
+    } while ( empty($url) && !empty($completion_time) && $ct <= 10 ) ;
 
     echo 'index.php?url=' . $url;
 }
