@@ -563,6 +563,170 @@ END;
         return $ct;
 }
 
+function get_dig_file_remote ($digfile_url = 'https://raw.github.com/openclipart/openclipart-public/master/archaelogists/dig.csv')
+{
+    $digfile = '/tmp/dig.csv';
+    
+    // TODO: check the access time, and don't allow some crazy
+    //       amount of remote getting and saving this file
 
+    if ( file_exists($digfile) )
+        return $digfile;
+   
+    $ch = curl_init();
+    $fp = fopen($digfile, "w");
+    curl_setopt($ch, CURLOPT_URL, $digfile_url);
+
+    curl_setopt($ch, CURLOPT_FILE, $fp);
+    curl_setopt($ch, CURLOPT_HEADER, 0);
+
+    curl_exec($ch);
+    curl_close($ch);
+    fclose($fp);
+
+    return $digfile;
+
+}
+
+/**
+ * read in the file as csv, and return the data structure 
+ */
+function get_dig_file ()
+{
+    $digfile = get_dig_file_remote();
+    $dig_file_array = array();
+    $row = 1;
+    if (($handle = fopen($digfile, "r")) !== FALSE) {
+    while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
+        $dig_file_array[] = $data;
+        /*
+        $num = count($data);
+        echo "<p> $num fields in line $row: <br /></p>\n";
+        $row++;
+        for ($c=0; $c < $num; $c++) {
+            echo $data[$c] . "<br />\n";
+        }
+        */
+    }
+    fclose($handle);
+
+    return $dig_file_array;
+}
+}
+
+/** 
+ * Print dig file.
+ */
+function print_dig_file_array ()
+{
+    $dig_file_array = get_dig_file();
+    echo "<pre>";
+    print_r( $dig_file_array );
+    echo "</pre>";
+
+}
+
+/**
+ * Save a dig to the dig file.
+ */
+function save_dig_to_dig_file ($dig, $digfile_path = '/tmp/dig.csv', $rw_flag='w+')
+{
+    save_dig_file($dig, $digfile_path, $rw_flag);
+}
+
+/**
+ * Take in the digfile data structure, and save to the csv file
+ */
+function save_dig_file ($digs, $digfile_path = '/tmp/dig.csv', $rw_flag = 'w')
+{
+/*
+$list = array (
+    array('aaa', 'bbb', 'ccc', 'dddd'),
+        array('123', '456', '789'),
+            array('"aaa"', '"bbb"')
+            );
+*/
+
+    $fp = fopen($digfile_path, $rw_flag);
+
+    foreach ($digs as $fields) {
+        fputcsv($fp, $fields);
+    }
+
+    fclose($fp);
+}
+
+/**
+ * Save the dig file remotely. For now, just email it to love@openclipart.org
+ */
+function save_dig_file_remote ()
+{
+}
+
+/**
+ * Take the current dig file and email it to someone.
+ */
+function mail_dig_file ($emailto   = 'jon@rejon.org', 
+                        $emailfrom = 'love@openclipart.org', 
+                        $digfile   = '/tmp/dig.csv')
+{
+    $my_subject     = 'Dig File';
+    $my_description = $my_subject;
+
+    return remail($emailto, $emailfrom,
+           $my_subject, $my_description, array($digfile) );
+}
+
+
+/**
+ * Get a random dig site from the dig file, and return it.
+ */
+function get_random_dig_site ()
+{
+    $dig_file_array = get_dig_file();
+    return $dig_file_array[array_rand($dig_file_array)];
+
+}
+
+/**
+ * Get a random dig site as a url.
+ */
+function get_random_dig_url ()
+{
+    $ct = 0;
+    $url = '';
+    do {
+        list($url) = get_random_dig_site();
+        $ct++;
+    } while ( empty($url) && $ct <= 10 ) ;
+
+    echo 'index.php?url=' . $url;
+}
+
+/**
+ * Look at the current dig site, and return the next dig site in the list
+ */
+function get_next_dig_site ()
+{
+}
+
+
+function clean_field ($field)
+{
+    return strtr($field, array(',' =>' '));
+}
+
+function dump_dig_file ()
+{
+$file_name = 'dig.csv';
+// $file_url = 'http://www.myremoteserver.com/' . $file_name;
+$file_path = '/tmp/' . $file_name;
+header('Content-Type: application/octet-stream');
+header("Content-Transfer-Encoding: Binary"); 
+header("Content-disposition: attachment; filename=\"".$file_name."\""); 
+readfile($file_path);
+
+
+}
 
 ?>

@@ -14,6 +14,7 @@
             'ti'             => 'http://examples.localhost/test/index.html',
         );
     }
+    
 
 
 ?>
@@ -32,7 +33,10 @@
         value="<?= (isset($_REQUEST['regex']) ? $_REQUEST['regex'] : 
                                                 $default_regex ) ; ?>" />
     <input name="GET" type="submit"       id="submit" value="GET" />
-    <a class="example" href="/index.php">reset</a>
+    <a class="example" href="<?= get_random_dig_url(); ?>&regex=<?= (isset($_REQUEST['regex']) ? $_REQUEST['regex'] : $default_regex ) ; ?>">random dig</a>
+    <a class="example" href="digexport.php">digexport</a>
+    <a class="example" href="digedit.php">digedit</a>
+    <a class="example" href="/index.php">reload</a>
     <?php
     if ( isset($examples) ) 
     {
