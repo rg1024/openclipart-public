@@ -11,6 +11,19 @@ HOWTO
   your webserver, apache or nginx.
 
 
+REQUIREMENTS
+============
+
+* php5
+* php5-curl library
+* some smtp solution like postfix
+
+USAGE
+=====
+
+* Setup on nginx or apache webserver at a url, and use it after installing
+  required packages above.
+
 TODO
 ====
 
