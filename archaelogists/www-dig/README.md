@@ -14,6 +14,10 @@ HOWTO
 TODO
 ====
 
+* add git-php support to automatically commit the changes and saved
+  digs to the file, so that other people will not repeat work
+  https://github.com/libgit2/php-git
+* do some security testing on the dig.csv, and what to do with it.
 * if find a link to file with wiki in the hostname, then test the file
   link to see if the file is real, or if is another html page with options
   for the real file. This is to fix how mediawiki handles uploaded
@@ -28,11 +32,15 @@ TODO
 FEATURES
 ========
 
-* Add default template
 * make inferences about the title, description and tags from the page
 * upon load, pull up a new url that has public domain content in it
 * automatically load the url of the file and the date into the
   description field of the first crawl
+* added ability to pull from a git-based dig file. Right now you can
+  only really pull from it, pull random sites to find public domain
+  images, and then also export the file and edit it. Then you can
+  send that file to other people if you want to, or check in to the
+  archaelogists folder. That is where the original is from
 
 
 WISHES
