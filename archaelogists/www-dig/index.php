@@ -2,14 +2,18 @@
     require_once('functions.php');
     $default_regex = '(?:svg|jpe?g|png|gif)';
 
-    $examples = array(
-        'mlk'            => 'http://www.mlkonline.net/images.html',
-        'goat'           => 'http://www.fws.gov/pictures/lineart/bobsavannah/mountaingoat.html',
-        'uscg.mil'       => 'http://www.uscg.mil/top/downloads/coloring.asp',
-        'mlk local'      => 'http://examples.localhost/mlk/images.html',
-        'uscg.mil local' => 'http://examples.localhost/uscg.mil/index.html',
-        'ti'             => 'http://examples.localhost/test/index.html',
-    );
+     
+    if ( $_SERVER['HTTP_HOST'] == 'dig.localhost' ||
+         $_SERVER['HTTP_HOST'] == 'localhost' ) {
+        $examples = array(
+            'mlk'            => 'http://www.mlkonline.net/images.html',
+            'goat'           => 'http://www.fws.gov/pictures/lineart/bobsavannah/mountaingoat.html',
+            'uscg.mil'       => 'http://www.uscg.mil/top/downloads/coloring.asp',
+            'mlk local'      => 'http://examples.localhost/mlk/images.html',
+            'uscg.mil local' => 'http://examples.localhost/uscg.mil/index.html',
+            'ti'             => 'http://examples.localhost/test/index.html',
+        );
+    }
 
 
 ?>
@@ -22,6 +26,7 @@
 <header>
     <form method="GET" action="index.php" id="urlform">
     <input name="url" type="text"         id="url"    
+        placeholder="Enter full url like https://en.wikipedia.org/wiki/Wikipedia:Public_domain_image_resources" 
         value="<?= (isset($_REQUEST['url']) ? $_REQUEST['url'] : '') ; ?>" />
     <input name="regex" type="text"         id="regex"    
         value="<?= (isset($_REQUEST['regex']) ? $_REQUEST['regex'] : 
@@ -29,13 +34,16 @@
     <input name="GET" type="submit"       id="submit" value="GET" />
     <a class="example" href="/index.php">reset</a>
     <?php
-    foreach ($examples as $exname => $exurl )
+    if ( isset($examples) ) 
     {
+        foreach ($examples as $exname => $exurl )
+        {
     ?>
     <?php
-        echo '<a class="example" href="/index.php?regex=' . $default_regex . 
-            '&url=' . $exurl . '">' . 
-        $exname . '</a>';
+            echo '<a class="example" href="/index.php?regex=' . $default_regex . 
+                '&url=' . $exurl . '">' . 
+            $exname . '</a>';
+        }
     }
     ?>
     </form>
