@@ -62,17 +62,12 @@
 
 
         }
-// echo "<strong>SEND</strong><br />\n<pre>";
-// print_r( $_REQUEST );
-// echo "</pre>";
     } 
     else if (isset($_REQUEST['url']))
     {
 
 echo "<strong>URL</strong>: " . $_REQUEST['url'] . "<br />\n";
 echo "<strong>REG</strong>: " . $_REQUEST['regex'] . "<br />\n";
-//print_r( $_REQUEST );
-// echo "</pre>";
 
 ?>
 
@@ -83,17 +78,21 @@ echo "<strong>REG</strong>: " . $_REQUEST['regex'] . "<br />\n";
 <br />
 <br />
 <?php
-        $base_url   = $_REQUEST['url'];
-        $html       = file_get_contents($base_url);
         $regex      = $_REQUEST['regex'];
+
+        $doc = get_doc_from_url($_REQUEST['url']);
+        // $base_url   = $_REQUEST['url'];
+        // $html       = file_get_contents($base_url);
 
         // $domain = dirname($_REQUEST['url']);
 
-        $doc = new DOMDocument();
-        @$doc->loadHTML($html);
+        // $doc = new DOMDocument();
+        // @$doc->loadHTML($html);
 
-        // $tags = $doc->getElementsByTagName('img'); 
         $tags_img   = $doc->getElementsByTagName('img'); 
+        
+        // go recursive on this element to get an image if at the linked
+        // file
         $tags_a     = $doc->getElementsByTagName('a'); 
         // echo "<pre>";
         // print_r($tags);

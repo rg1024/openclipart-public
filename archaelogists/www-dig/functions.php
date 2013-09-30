@@ -1,4 +1,11 @@
 <?php
+/** 
+ *
+ */
+define("DIGFILE_PATH", '/srv/www/dig.openclipart.org/private/tmp');
+define("DIGFILE", '/srv/www/dig.openclipart.org/private/tmp/dig.csv');
+
+
 /**
  * http://nadeausoftware.com/node/79
  */
@@ -300,7 +307,8 @@ function curl_get_file_contents($URL)
 
 function curl_save_file($image_url, $filename)
 {
-    $savepath = "/tmp/$filename";
+    // $savepath = "/tmp/$filename";
+    $savepath = DIGFILE_PATH . "/$filename";
 
     // so what it overwrites something
     // print_r($savepath);
@@ -565,7 +573,9 @@ END;
 
 function get_dig_file_remote ($digfile_url = 'https://raw.github.com/openclipart/openclipart-public/master/archaelogists/dig.csv')
 {
-    $digfile = '/tmp/dig.csv';
+    // $digfile = '/tmp/dig.csv';
+    $digfile = DIGFILE;
+    // $digfile = '/srv/www/dig.openclipart.org/private/tmp/dig.csv';
     
     // TODO: check the access time, and don't allow some crazy
     //       amount of remote getting and saving this file
@@ -621,7 +631,8 @@ function print_dig_file_array ()
 /**
  * Save a dig to the dig file.
  */
-function save_dig_to_dig_file ($dig, $digfile_path = '/tmp/dig.csv', $rw_flag='w+')
+function save_dig_to_dig_file ($dig, $digfile_path = DIGFILE, 
+                               $rw_flag='w+')
 {
     save_dig_file($dig, $digfile_path, $rw_flag);
 }
@@ -629,7 +640,8 @@ function save_dig_to_dig_file ($dig, $digfile_path = '/tmp/dig.csv', $rw_flag='w
 /**
  * Take in the digfile data structure, and save to the csv file
  */
-function save_dig_file ($digs, $digfile_path = '/tmp/dig.csv', $rw_flag = 'w')
+function save_dig_file ($digs, $digfile_path = DIGFILE, 
+                        $rw_flag = 'w')
 {
 /*
 $list = array (
@@ -660,7 +672,7 @@ function save_dig_file_remote ()
  */
 function mail_dig_file ($emailto   = 'jon@rejon.org', 
                         $emailfrom = 'love@openclipart.org', 
-                        $digfile   = '/tmp/dig.csv')
+                        $digfile   = DIGFILE)
 {
     $my_subject     = 'Dig File';
     $my_description = $my_subject;
@@ -692,9 +704,19 @@ function get_random_dig_url ()
         list($url,$summary,$image_count, $tags, $access_time, 
              $completion_time,$name) = get_random_dig_site();
         $ct++;
-    } while ( empty($url) && !empty($completion_time) && $ct <= 10 ) ;
+        
+        /*
+        echo "<pre>";
+        echo "url: $url\n";
+        echo "atime: $access_time\n";
+        echo "ctime: $completion_time\n";
+        echo "ct: $ct\n";
+        echo "</pre>";
+        */
+       
+    } while ( empty($url) && !empty($completion_time) && $ct < 10 ) ;
 
-    echo 'index.php?url=' . $url;
+    return 'index.php?url=' . $url;
 }
 
 /**
@@ -714,7 +736,7 @@ function dump_dig_file ()
 {
 $file_name = 'dig.csv';
 // $file_url = 'http://www.myremoteserver.com/' . $file_name;
-$file_path = '/tmp/' . $file_name;
+$file_path = DIGFILE_PATH . "/$file_name";
 header('Content-Type: application/octet-stream');
 header("Content-Transfer-Encoding: Binary"); 
 header("Content-disposition: attachment; filename=\"".$file_name."\""); 
@@ -722,5 +744,17 @@ readfile($file_path);
 
 
 }
+
+function get_doc_from_url ($url)
+{
+    $base_url   = $url;
+    $html       = file_get_contents($base_url);
+    // $domain = dirname($_REQUEST['url']);
+
+    $doc = new DOMDocument();
+    @$doc->loadHTML($html);
+    return $doc;
+}
+
 
 ?>
