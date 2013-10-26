@@ -538,14 +538,21 @@ function print_results ($tags, $base_url, $regex, $attrib, $ct)
             // print_r($info['extension']);
             $urlparts = parse_url($info['dirname']);
             $mytags = explode('/', $urlparts['path']);
+            // print_r($urlparts);
             $mytags[] = $urlparts['host'];
             $suggested_title =  $info['filename'];
             $mytags[] = $suggested_title;
             $mytags[] = "dig";
             $mytags[] = "publicdomain";
             $mytags[] = "pd";
+            
+            $mytags[] = "syria";
+            $suggested_title = preg_replace("/^(.+px)/", '', $suggested_title);
             $suggested_title = strtr($suggested_title, array('_'=>' ',
                                                              '-'=>' '));
+            $suggested_title = ltrim($suggested_title);
+            $suggested_title = $suggested_title . ' thumbnail';
+
             $tagstring = get_tags($mytags);
 
             $getdate = date('Y-m-d H:i:s');
@@ -558,7 +565,7 @@ echo <<< END
 <a href="$p"><img class="thumb" src="$p" alt="" /></a>
 <a class="caption" href="$p">$p</a>
 <input type="hidden" name="url-$ct" value="$p" />
-<input class="check" type="checkbox" name="include-$ct" value="" />
+<input class="check" type="checkbox" name="include-$ct" checked="checked" />
 <label for="include">Yes, Include in PD Submission</label>
 <input class="title" type="text" name="title-$ct" placeholder="The Image $ct's Title" value="$suggested_title" />
 <textarea class="description" name="description-$ct" placeholder="This is the Image $ct's description">$description</textarea>
@@ -745,15 +752,15 @@ readfile($file_path);
 
 }
 
-function get_doc_from_url ($url)
+function get_elements_from_url ($url, $element = 'img')
 {
-    $base_url   = $url;
-    $html       = file_get_contents($base_url);
-    // $domain = dirname($_REQUEST['url']);
-
-    $doc = new DOMDocument();
+    $html       = file_get_contents($url);
+    // $domain     = dirname($url);
+    $doc        = new DOMDocument();
     @$doc->loadHTML($html);
-    return $doc;
+
+    return  $doc->getElementsByTagName($element); 
+
 }
 
 

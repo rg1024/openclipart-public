@@ -79,28 +79,50 @@ echo "<strong>REG</strong>: " . $_REQUEST['regex'] . "<br />\n";
 <br />
 <?php
         $regex      = $_REQUEST['regex'];
-
-        $doc = get_doc_from_url($_REQUEST['url']);
-        // $base_url   = $_REQUEST['url'];
-        // $html       = file_get_contents($base_url);
-
-        // $domain = dirname($_REQUEST['url']);
-
-        // $doc = new DOMDocument();
-        // @$doc->loadHTML($html);
+        $base_url   = $_REQUEST['url'];
+        $html       = file_get_contents($base_url);
+        $doc = new DOMDocument();
+        @$doc->loadHTML($html);
 
         $tags_img   = $doc->getElementsByTagName('img'); 
-        
-        // go recursive on this element to get an image if at the linked
-        // file
         $tags_a     = $doc->getElementsByTagName('a'); 
+
         // echo "<pre>";
         // print_r($tags);
         // echo "</pre>";
 
         $ct = 0;
         $ct = print_results($tags_img,  $base_url, $regex, 'src', $ct);
-        $ct = print_results($tags_a,    $base_url, $regex, 'href', $ct);
+        // $ct = print_results($tags_a,    $base_url, $regex, 'href', $ct);
+
+        /*
+         * for tomorrow
+         *
+        if ( count($tags_a) > 0 )
+        {
+            $last_url = '';
+            foreach ($tags_a as $t) 
+            {
+                $u = $t->getAttribute('href');
+                $p = url_to_absolute( $base_url, $u );
+                
+                // cleanses some duplication was seeing
+                if ( $last_url == $u )
+                    continue;
+
+                if ( preg_match( "/commons.wikimedia.org/i", $p ) ) {
+                    print_r($p);
+                    // $tags_img2 = get_elements_from_url($p);
+                    // $lct = count($tags_img2);
+                    echo "<pre>";
+                    print_r($lct);
+                    echo "</pre>";
+                    // $ct = print_results($tags_img2, $p, $regex, 'src', $ct);
+                }
+                $last_url = $u;
+            }
+        } */
+        
         
         if ( $ct > 0 )
         {
