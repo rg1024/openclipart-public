@@ -5,12 +5,17 @@
 <html>
 <head>
 <link rel="stylesheet" href="/style.css" />
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="main.js"></script>
+<script>
+    $(document).ready(function() {
+        // This is more like it!
+    });
+</script>
 </head>
 <body>
 
 <?php
-
-
 
     if (isset($_REQUEST['send']) && $_REQUEST['ct'] > 0 && 
         ! empty($_REQUEST['emailfrom']) && ! empty($_REQUEST['emailto']) )
@@ -20,6 +25,9 @@
         $emailto        = $_REQUEST['emailto'];
         // $emailfrom  = "jon@rejon.org";
         $emailfrom      = $_REQUEST['emailfrom'];
+
+        $global_tags  = $_REQUEST['global_tags'];
+        $global_title = $_REQUEST['global_title'];
 
         $fields = array('url', 'title', 'description', 'tags');
 
@@ -66,64 +74,82 @@
     else if (isset($_REQUEST['url']))
     {
 
-echo "<strong>URL</strong>: " . $_REQUEST['url'] . "<br />\n";
-echo "<strong>REG</strong>: " . $_REQUEST['regex'] . "<br />\n";
+// echo "<strong>URL</strong>: " . $_REQUEST['url'] . "<br />\n";
+// echo "<strong>REG</strong>: " . $_REQUEST['regex'] . "<br />\n";
+// echo "<strong>REG2</strong>: ". $_REQUEST['regex_second'] . "<br />\n";
+// echo "<strong>LEV</strong>: " . $_REQUEST['deeper'] . "<br />\n";
 
 ?>
 
 <h4>Please review images from the page for submission.</h4>
 <form method="POST" action="dig.php" id="getform">
-<input type="text" id="emailfrom" name="emailfrom" placeholder="Email to submit from" />
-<input type="text" id="emailto" name="emailto" value="upload@openclipart.org" />
+<label for="global_tags">Global Tags</label><input type="text" id="global_tags" name="global_tags" placeholder="#tag #like #this" value="#publicdomain #pd #dig" /><br />
+<label for="global_title">Global Title Suffix</label><input type="text" id="global_title" name="global_title" placeholder="Suffix for Title" /><br />
+<lable for="checkall">Yes, Check All Public Domain</a><input type="checkbox" name="checkall" onclick="toggleChecks();" /><br />
+<label for="emailfrom">From</label><input type="text" id="emailfrom" name="emailfrom" placeholder="Email to submit from" />
+<label for="emailto">To</label><input type="text" id="emailto" name="emailto" value="share@openclipart.org" />
 <br />
 <br />
 <?php
-        $regex      = $_REQUEST['regex'];
-        $base_url   = $_REQUEST['url'];
-        $html       = file_get_contents($base_url);
-        $doc = new DOMDocument();
-        @$doc->loadHTML($html);
+        $deeper       = isset($_REQUEST['deeper']) ?
+                        $_REQUEST['deeper'] : 0;
+        // not reading the is_int even if int, must need to convert to 
+        // int first!
+        //if ( ! is_int($deeper) )
+        //    $deeper = 0;
+        $regex        = $_REQUEST['regex'];
+        $regex_second = isset($_REQUEST['regex_second']) ?
+                        $_REQUEST['regex_second'] : '';
+        $base_url     = $_REQUEST['url'];
 
-        $tags_img   = $doc->getElementsByTagName('img'); 
-        $tags_a     = $doc->getElementsByTagName('a'); 
-
-        // echo "<pre>";
-        // print_r($tags);
-        // echo "</pre>";
+        $global_tags  = isset($_REQUEST['global_tags']) ?
+                        $_REQUEST['global_tags'] : '';
+        $global_title = isset($_REQUEST['global_title']) ? 
+                        $_REQUEST['global_title'] : '';
 
         $ct = 0;
-        $ct = print_results($tags_img,  $base_url, $regex, 'src', $ct);
-        // $ct = print_results($tags_a,    $base_url, $regex, 'href', $ct);
 
-        /*
-         * for tomorrow
-         *
-        if ( count($tags_a) > 0 )
+
+        $dig_queue      = array($base_url);
+        $dig_queue_post = array();
+
+        // limit how deep we can go here, or this is really gonna slow down
+        for ( $d = 0; $d <= $deeper; $d++)
         {
-            $last_url = '';
-            foreach ($tags_a as $t) 
-            {
-                $u = $t->getAttribute('href');
-                $p = url_to_absolute( $base_url, $u );
-                
-                // cleanses some duplication was seeing
-                if ( $last_url == $u )
-                    continue;
+            if ( $d > 0 )
+                $dig_queue = $dig_queue_post;
 
-                if ( preg_match( "/commons.wikimedia.org/i", $p ) ) {
-                    print_r($p);
-                    // $tags_img2 = get_elements_from_url($p);
-                    // $lct = count($tags_img2);
-                    echo "<pre>";
-                    print_r($lct);
-                    echo "</pre>";
-                    // $ct = print_results($tags_img2, $p, $regex, 'src', $ct);
+            while ( $dig_url = array_shift($dig_queue) )
+            {
+                $tags_array = 
+                    get_elements_from_url( $dig_url, array('img','a') );
+
+                $ct = print_results($tags_array['img'],  $dig_url, $regex, 
+                                   'src', $ct, 
+                                   $global_tags, $global_title);
+
+                if ( count($tags_array['a']) > 0 && !empty($regex_second) )
+                {
+                    $last_url = '';
+                    foreach ($tags_array['a'] as $t) 
+                    {
+                        $u = $t->getAttribute('href');
+                        $p = url_to_absolute( $dig_url, $u );
+
+                        // cleanses some duplication was seeing
+                        if ( $last_url == $u )
+                            continue;
+
+                        if (preg_match( "/$regex_second/i", $p ) ) 
+                        {
+                            array_push($dig_queue_post, $p);
+                        }
+                        $last_url = $u;
+                    }
                 }
-                $last_url = $u;
             }
-        } */
-        
-        
+        }
+
         if ( $ct > 0 )
         {
 echo <<< ENDER

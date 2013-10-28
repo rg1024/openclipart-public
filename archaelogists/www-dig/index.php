@@ -1,6 +1,6 @@
 <?php
     require_once('functions.php');
-    $default_regex = '(?:svg|jpe?g|png|gif)';
+    $default_regex = '(?:svg|pdf|jpe?g|png|gif)';
 
      
     if ( $_SERVER['HTTP_HOST'] == 'dig.localhost' ||
@@ -22,17 +22,27 @@
 <html>
 <head>
 <link rel="stylesheet" href="/style.css" />
+<!-- <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="main.js"></script>
+<script>
+  $(document).ready(function() {
+          // This is more like it!
+            });
+</script> -->
 </head>
 <body>
 <header>
     <form method="GET" action="index.php" id="urlform">
     <input name="url" type="text"         id="url"    
-        placeholder="Enter full url like https://en.wikipedia.org/wiki/Wikipedia:Public_domain_image_resources" 
+        placeholder="DIG! Enter full url like https://en.wikipedia.org/wiki/Wikipedia:Public_domain_image_resources" 
         value="<?= (isset($_REQUEST['url']) ? $_REQUEST['url'] : '') ; ?>" />
     <input name="regex" type="text"         id="regex"    
         value="<?= (isset($_REQUEST['regex']) ? $_REQUEST['regex'] : 
                                                 $default_regex ) ; ?>" />
-    <input name="GET" type="submit"       id="submit" value="GET" />
+    <input name="GET" type="submit"       id="submit" value="DIG!" />
+    <label for="deeper">Levels Deep</label><input name="deeper" id="deeper" type="text" value="<?= isset($_REQUEST['deeper']) ? $_REQUEST['deeper'] : 0 ; ?>" />
+    <label for="regex_second">Regex Deeper</label><input name="regex_second" id="regex_second" type="text" placeholder="commons.wikimedia.org" value="<?= isset($_REQUEST['regex_second']) ? $_REQUEST['regex_second'] : '' ; ?>" />
+    <br />
     <a class="example" href="<?= get_random_dig_url(); ?>&regex=<?= (isset($_REQUEST['regex']) ? $_REQUEST['regex'] : $default_regex ) ; ?>">random dig</a>
     <a class="example" href="digexport.php">digexport</a>
     <a class="example" href="digedit.php">digedit</a>

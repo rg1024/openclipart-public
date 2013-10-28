@@ -10,6 +10,7 @@ require_once('functions.php');
 
 // mail_dig_file();
 
+// echo get_random_dig_site();
 echo get_random_dig_url();
 
 

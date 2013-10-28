@@ -2,8 +2,11 @@
 /** 
  *
  */
-define("DIGFILE_PATH", '/srv/www/dig.openclipart.org/private/tmp');
-define("DIGFILE", '/srv/www/dig.openclipart.org/private/tmp/dig.csv');
+$REALPATH = realpath(dirname(__FILE__));
+define("DIGFILE_PATH", $REALPATH . '/tmp');
+define("DIGFILE", DIGFILE_PATH . '/dig.csv');
+
+date_default_timezone_set('UTC');
 
 
 /**
@@ -361,6 +364,7 @@ function split_url( $url, $decode=TRUE )
     $xurl          = '^(' . $xscheme . ':)?' .  $xapath . '?' .
                      '(\?' . $xqueryfrag . ')?(#' . $xqueryfrag . ')?$';
  
+    $parts         = array();
  
     // Split the URL into components.
     if ( !preg_match( '!' . $xurl . '!', $url, $m ) )
@@ -526,14 +530,15 @@ function remail($to,$from,$subject,$message,$files)
 }
 
 // @returns count
-function print_results ($tags, $base_url, $regex, $attrib, $ct)
+function print_results ($tags, $base_url, $regex, $attrib, $ct, $global_tags = '', $global_title = '' )
 {
         foreach ($tags as $tag) {
             $p = url_to_absolute( $base_url, $tag->getAttribute($attrib) );
             $suggested_title =  basename($p);
             $info = pathinfo($p);
             // skip files types we are not looking for
-            if ( ! preg_match( "/$regex/i", $info['extension'] ) )
+            if ( isset($info['extension']) || 
+                 ! preg_match( "/$regex/i", $info['extension'] ) )
                 continue;
             // print_r($info['extension']);
             $urlparts = parse_url($info['dirname']);
@@ -542,16 +547,20 @@ function print_results ($tags, $base_url, $regex, $attrib, $ct)
             $mytags[] = $urlparts['host'];
             $suggested_title =  $info['filename'];
             $mytags[] = $suggested_title;
-            $mytags[] = "dig";
-            $mytags[] = "publicdomain";
-            $mytags[] = "pd";
+            $mytags[] = $global_title;
+
+            if ( is_array($global_tags) && count($global_tags) > 0 ) {
+                foreach ( $global_tags as $t )
+                {
+                    $mytags[] = $t;
+                }
+            }
             
-            $mytags[] = "syria";
             $suggested_title = preg_replace("/^(.+px)/", '', $suggested_title);
             $suggested_title = strtr($suggested_title, array('_'=>' ',
                                                              '-'=>' '));
             $suggested_title = ltrim($suggested_title);
-            $suggested_title = $suggested_title . ' thumbnail';
+            $suggested_title = $suggested_title . " $global_title";
 
             $tagstring = get_tags($mytags);
 
@@ -565,8 +574,8 @@ echo <<< END
 <a href="$p"><img class="thumb" src="$p" alt="" /></a>
 <a class="caption" href="$p">$p</a>
 <input type="hidden" name="url-$ct" value="$p" />
-<input class="check" type="checkbox" name="include-$ct" checked="checked" />
-<label for="include">Yes, Include in PD Submission</label>
+<input class="check" type="checkbox" name="include-$ct" />
+<label for="include">Yes, Include in Public Domain Submission</label>
 <input class="title" type="text" name="title-$ct" placeholder="The Image $ct's Title" value="$suggested_title" />
 <textarea class="description" name="description-$ct" placeholder="This is the Image $ct's description">$description</textarea>
 <input class="tags" type="text" name="tags-$ct" placeholder="#change #Default #tags" value="$tagstring" />
@@ -578,11 +587,9 @@ END;
         return $ct;
 }
 
-function get_dig_file_remote ($digfile_url = 'https://raw.github.com/openclipart/openclipart-public/master/archaelogists/dig.csv')
+function get_dig_file_remote ($digfile_url = 'https://raw.github.com/openclipart-dev/openclipart-public/master/archaelogists/dig.csv')
 {
-    // $digfile = '/tmp/dig.csv';
     $digfile = DIGFILE;
-    // $digfile = '/srv/www/dig.openclipart.org/private/tmp/dig.csv';
     
     // TODO: check the access time, and don't allow some crazy
     //       amount of remote getting and saving this file
@@ -591,16 +598,17 @@ function get_dig_file_remote ($digfile_url = 'https://raw.github.com/openclipart
         return $digfile;
    
     $ch = curl_init();
+    // print_r($digfile);
     $fp = fopen($digfile, "w");
     curl_setopt($ch, CURLOPT_URL, $digfile_url);
 
     curl_setopt($ch, CURLOPT_FILE, $fp);
     curl_setopt($ch, CURLOPT_HEADER, 0);
+    // curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 
     curl_exec($ch);
     curl_close($ch);
     fclose($fp);
-
     return $digfile;
 
 }
@@ -611,16 +619,20 @@ function get_dig_file_remote ($digfile_url = 'https://raw.github.com/openclipart
 function get_dig_file ()
 {
     $digfile = get_dig_file_remote();
+    // print_r($digfile);
     $dig_file_array = array();
     $row = 1;
     if (($handle = fopen($digfile, "r")) !== FALSE) {
-    while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
-        $dig_file_array[] = $data;
-    }
-    fclose($handle);
+        while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
+            $dig_file_array[] = $data;
+        }
+        fclose($handle);
 
-    return $dig_file_array;
-}
+        // print_r($dig_file_array);
+        return $dig_file_array;
+    } else {
+        die("Can't open dig file handle");
+    }
 }
 
 /** 
@@ -629,9 +641,11 @@ function get_dig_file ()
 function print_dig_file_array ()
 {
     $dig_file_array = get_dig_file();
+    /*
     echo "<pre>";
     print_r( $dig_file_array );
     echo "</pre>";
+    */
 
 }
 
@@ -695,6 +709,7 @@ function mail_dig_file ($emailto   = 'jon@rejon.org',
 function get_random_dig_site ()
 {
     $dig_file_array = get_dig_file();
+    // print_r($dig_file_array);
     return $dig_file_array[array_rand($dig_file_array)];
 
 }
@@ -704,6 +719,9 @@ function get_random_dig_site ()
  */
 function get_random_dig_url ()
 {
+    $dig_file_array = get_dig_file();
+    $dct = count($dig_file_array);
+
     $ct = 0;
     $url = '';
     do {
@@ -711,17 +729,20 @@ function get_random_dig_url ()
         list($url,$summary,$image_count, $tags, $access_time, 
              $completion_time,$name) = get_random_dig_site();
         $ct++;
-        
+
         /*
         echo "<pre>";
         echo "url: $url\n";
         echo "atime: $access_time\n";
         echo "ctime: $completion_time\n";
         echo "ct: $ct\n";
+        echo "dct: $dct\n";
         echo "</pre>";
         */
+
+
        
-    } while ( empty($url) && !empty($completion_time) && $ct < 10 ) ;
+    } while ( empty($url) || empty($completion_time) && $ct < $dct ) ;
 
     return 'index.php?url=' . $url;
 }
@@ -731,6 +752,8 @@ function get_random_dig_url ()
  */
 function get_next_dig_site ()
 {
+    // return "Not implemented yet!";
+    return 0;
 }
 
 
@@ -758,6 +781,15 @@ function get_elements_from_url ($url, $element = 'img')
     // $domain     = dirname($url);
     $doc        = new DOMDocument();
     @$doc->loadHTML($html);
+
+
+    $results = array();
+    if ( is_array($element) ) 
+    {
+        foreach ( $element as $e)
+            $results[$e] = $doc->getElementsByTagName($e);
+        return $results;
+    } 
 
     return  $doc->getElementsByTagName($element); 
 

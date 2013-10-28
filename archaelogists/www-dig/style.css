@@ -15,6 +15,18 @@ header input#url {
     width: 50%;
 }
 
+header input#deeper {
+    width: 20px;
+}
+
+header input#regex_second {
+    width: 150px;
+}
+
+header label {
+    margin-right: 4px;
+}
+
 .digframe {
     display: block;
     width: 46%;
