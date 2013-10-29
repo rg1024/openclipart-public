@@ -1,7 +1,7 @@
 <?php
     require_once('functions.php');
     $default_regex = '(?:svg|pdf|jpe?g|png|gif)';
-
+    $random_dig_url = get_random_dig_url();
      
     if ( $_SERVER['HTTP_HOST'] == 'dig.localhost' ||
          $_SERVER['HTTP_HOST'] == 'localhost' ) {
@@ -43,7 +43,13 @@
     <label for="deeper">Levels Deep</label><input name="deeper" id="deeper" type="text" value="<?= isset($_REQUEST['deeper']) ? $_REQUEST['deeper'] : 0 ; ?>" />
     <label for="regex_second">Regex Deeper</label><input name="regex_second" id="regex_second" type="text" placeholder="commons.wikimedia.org" value="<?= isset($_REQUEST['regex_second']) ? $_REQUEST['regex_second'] : '' ; ?>" />
     <br />
+    <?php
+    if ( !empty($random_dig_url) ) {
+    ?>
     <a class="example" href="<?= get_random_dig_url(); ?>&regex=<?= (isset($_REQUEST['regex']) ? $_REQUEST['regex'] : $default_regex ) ; ?>">random dig</a>
+    <?php
+    }
+    ?>
     <a class="example" href="digexport.php">digexport</a>
     <a class="example" href="digedit.php">digedit</a>
     <a class="example" href="/index.php">reload</a>

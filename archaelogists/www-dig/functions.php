@@ -530,17 +530,17 @@ function remail($to,$from,$subject,$message,$files)
 }
 
 // @returns count
-function print_results ($tags, $base_url, $regex, $attrib, $ct, $global_tags = '', $global_title = '' )
+function print_results ($tags, $base_url, $regex, $attrib, $ct, 
+                        $global_tags = '', $global_title = '' )
 {
         foreach ($tags as $tag) {
             $p = url_to_absolute( $base_url, $tag->getAttribute($attrib) );
             $suggested_title =  basename($p);
             $info = pathinfo($p);
             // skip files types we are not looking for
-            if ( isset($info['extension']) || 
+            if ( ! isset($info['extension']) || 
                  ! preg_match( "/$regex/i", $info['extension'] ) )
                 continue;
-            // print_r($info['extension']);
             $urlparts = parse_url($info['dirname']);
             $mytags = explode('/', $urlparts['path']);
             // print_r($urlparts);
@@ -596,6 +596,14 @@ function get_dig_file_remote ($digfile_url = 'https://raw.github.com/openclipart
 
     if ( file_exists($digfile) )
         return $digfile;
+
+    if ( ! is_writable( DIGFILE_PATH ) )
+    {
+        // die( "The path is not writable for the master digfile." );
+        log("ERROR: The DIGFILE_PATH is not writable. " . DIGFILE_PATH);
+        return 0;
+    }
+
    
     $ch = curl_init();
     // print_r($digfile);
@@ -620,6 +628,9 @@ function get_dig_file ()
 {
     $digfile = get_dig_file_remote();
     // print_r($digfile);
+    
+    if ( $digfile == FALSE )
+        return FALSE;
     $dig_file_array = array();
     $row = 1;
     if (($handle = fopen($digfile, "r")) !== FALSE) {
@@ -631,22 +642,16 @@ function get_dig_file ()
         // print_r($dig_file_array);
         return $dig_file_array;
     } else {
-        die("Can't open dig file handle");
+        log("Can't open the dig file handle.");
+        return FALSE;
     }
 }
 
-/** 
- * Print dig file.
- */
-function print_dig_file_array ()
+function merge_digs ( $digs )
 {
-    $dig_file_array = get_dig_file();
-    /*
-    echo "<pre>";
-    print_r( $dig_file_array );
-    echo "</pre>";
-    */
-
+    // merge
+    // remove duplicates
+    // return dig
 }
 
 /**
@@ -709,6 +714,10 @@ function mail_dig_file ($emailto   = 'jon@rejon.org',
 function get_random_dig_site ()
 {
     $dig_file_array = get_dig_file();
+    if ( $dig_file_array == FALSE ) {
+        log("ERROR: Can't get_random_dig_site.");
+        return FALSE;
+    }
     // print_r($dig_file_array);
     return $dig_file_array[array_rand($dig_file_array)];
 
@@ -720,14 +729,28 @@ function get_random_dig_site ()
 function get_random_dig_url ()
 {
     $dig_file_array = get_dig_file();
+    if ( $dig_file_array == FALSE )
+    {
+        log("ERROR: Can't get random_dig_url.");
+        return FALSE;
+    }
+
     $dct = count($dig_file_array);
 
     $ct = 0;
     $url = '';
     do {
 
+        $random_dig_list = get_random_dig_site();
+
+        if ( $random_dig_list == FALSE )
+        {
+            log("ERROR: Can't get_random_dig_site.");
+            return FALSE;
+        }
+
         list($url,$summary,$image_count, $tags, $access_time, 
-             $completion_time,$name) = get_random_dig_site();
+             $completion_time,$name) = $random_dig_list;
         $ct++;
 
         /*
@@ -740,9 +763,10 @@ function get_random_dig_url ()
         echo "</pre>";
         */
 
-
        
-    } while ( empty($url) || empty($completion_time) && $ct < $dct ) ;
+    } while ( empty($url) || 
+              (!empty($completion_time) && !empty($url)) && 
+              $ct < $dct ) ;
 
     return 'index.php?url=' . $url;
 }

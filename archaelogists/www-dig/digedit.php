@@ -37,6 +37,9 @@ if ( isset($_REQUEST['save']) && !empty($_REQUEST['mct']) )
 $dig_files = get_dig_file();
 // print_r($dig_files);
 
+if ( $dig_files == FALSE )
+    die("Cannot get the dig file. Something is wrong with your setup.");
+
 ?>
 <html>
 <head></head>
