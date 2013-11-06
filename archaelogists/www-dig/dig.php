@@ -4,7 +4,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-<link rel="stylesheet" href="/style.css" />
+<meta charset='utf-8'>
+<link rel="stylesheet" href="./style.css" />
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <script src="main.js"></script>
 <script>
@@ -13,7 +14,7 @@
     });
 </script>
 </head>
-<body>
+<body id='digBody'>
 
 <?php
 
@@ -29,12 +30,6 @@
         $global_tags  = $_REQUEST['global_tags'];
         $global_title = $_REQUEST['global_title'];
 
-        /*
-        print_r($global_tags);
-        print_r($global_title);
-        exit;
-        */
-
         $fields = array('url', 'title', 'description', 'tags');
 
         echo "<h3>Saving and Sending Files.</h3>";
@@ -42,8 +37,9 @@
         $lct = $_REQUEST['ct']; 
         for ($ct = 0; $ct < $lct; $ct++)
         {
-            if ( ! isset($_REQUEST["include-$ct"]) )
+            if ( ! isset($_REQUEST["include-$ct"]) ){
                 continue;
+            }    
 
             $my_subject     = $_REQUEST["title-$ct"] . " $global_title";
             $my_description = $_REQUEST["description-$ct"] . "\n\n" . 
@@ -51,7 +47,6 @@
 
             $my_image_url   = $_REQUEST["url-$ct"];
             $my_image_name  = basename($my_image_url);
-
 
 
             echo "<p><strong>global_title:</strong> " . $global_title . "</p>";
@@ -108,15 +103,14 @@
 
 ?>
 
-<h4>Please review images from the page for submission.</h4>
-<form method="POST" action="dig.php" id="getform">
-<label for="global_tags">Global Tags</label><input type="text" id="global_tags" name="global_tags" placeholder="#tag #like #this" value="#publicdomain #pd #dig" /><br />
-<label for="global_title">Global Title Suffix</label><input type="text" id="global_title" name="global_title" placeholder="Suffix for Title" /><br />
-<lable for="checkall">Yes, Check All Public Domain</a><input type="checkbox" name="checkall" onclick="toggleChecks();" /><br />
-<label for="emailfrom">From</label><input type="text" id="emailfrom" name="emailfrom" placeholder="Email to submit from" />
-<label for="emailto">To</label><input type="text" id="emailto" name="emailto" value="share@openclipart.org" />
-<br />
-<br />
+<strong>Please review images from the page for submission.</strong>
+<form method="POST" action="dig.php" id="diggetform">
+<p><label for="global_tags">Global Tags</label><input type="text" id="global_tags" name="global_tags" placeholder="#tag #like #this" value="#publicdomain #pd #dig" /></p>
+<p><label for="global_title">Global Title Suffix</label><input type="text" id="global_title" name="global_title" placeholder="Suffix for Title" /></p>
+<p><lable for="checkall">Yes, Check All Public Domain</a><input type="checkbox" name="checkall" onclick="toggleChecks();" /></p>
+<p><label for="emailfrom">From</label><input type="text" id="emailfrom" name="emailfrom" placeholder="Email to submit from" /></p>
+<p><label for="emailto">Send To</label><input type="text" id="emailto" name="emailto" value="share@openclipart.org" /></p>
+
 <?php
 
         $ct = 0;

@@ -8,6 +8,10 @@ define("DIGFILE", DIGFILE_PATH . '/dig.csv');
 
 date_default_timezone_set('UTC');
 
+function request_and_clean($value,$default='') {
+    return addslashes(isset($_REQUEST[$value]) ? $_REQUEST[$value]: $default);
+}
+
 
 /**
  * http://nadeausoftware.com/node/79
@@ -600,7 +604,7 @@ function get_dig_file_remote ($digfile_url = 'https://raw.github.com/openclipart
     if ( ! is_writable( DIGFILE_PATH ) )
     {
         // die( "The path is not writable for the master digfile." );
-        log("ERROR: The DIGFILE_PATH is not writable. " . DIGFILE_PATH);
+        error_log("ERROR: The DIGFILE_PATH is not writable. " . DIGFILE_PATH);
         return 0;
     }
 
@@ -731,7 +735,7 @@ function get_random_dig_url ()
     $dig_file_array = get_dig_file();
     if ( $dig_file_array == FALSE )
     {
-        log("ERROR: Can't get random_dig_url.");
+        error_log("ERROR: Can't get random_dig_url.");
         return FALSE;
     }
 
@@ -820,4 +824,3 @@ function get_elements_from_url ($url, $element = 'img')
 }
 
 
-?>

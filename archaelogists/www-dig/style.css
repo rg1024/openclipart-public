@@ -1,18 +1,54 @@
-body {
-    padding: 1%;
-    margin: 0;
-    font-family: helvetica, arial, sans-serif;
-    font-size: 10pt;
-    line-height: 12pt;
+html{
+   height: 100%;  
 }
-header {
-    height: 5%;
-    background-color: #eee;
-    padding: 1%;
+
+body {
+    padding: 0;
+    margin: 0;
+    font: normal normal normal 12px/14px helvetica, arial, sans-serif;
+}
+
+body#indexBody {
+    height: 100%;
+    background:#fff url(./images/body.png) top left repeat-x;
+}
+
+
+#indexBody header {
+    padding:50px 0 20px 0;
+    margin: 0 2%;
+    background: url(./images/main_header.png) top left no-repeat;   
     margin-bottom: 1%;
 }
+
+@media (max-width: 799px)  {
+    
+}
+
+@media (min-width: 800px) {
+    
+    #indexBody header {
+        padding-top: 74px;
+        background-image: url(./images/main_header_800.png);
+    }
+    
+    body#indexBody { 
+        background-image:url(./images/body_800.png);
+    }
+
+}
+
+
+#indexBody header h1 {
+    display:none;
+}
+
+header form {
+    padding:10px 20px;
+}
+
 header input#url {
-    width: 50%;
+    width: 40%;
 }
 
 header input#deeper {
@@ -27,29 +63,34 @@ header label {
     margin-right: 4px;
 }
 
+div#examples a {
+  margin-right: 0.5em;
+}
+
+
 .digframe {
     display: block;
-    width: 46%;
-    height: 84%;
-    border: 2px solid black;
-    overflow: scroll;
-    padding: 1%;
+    float:left;
+    margin-left:2%;
+    width: 45%;
+    height:82%;
+    border: none;
 }
 
-#urlframe {
-    position: absolute;
-    bottom: 1%;
-    left: 1%;
+#urlframe {    
+    border:1px solid #333;
+    float:left;    
 }
 
-#twkframe {
-    position: absolute;
-    right: 1%;
-    bottom: 1%;
+#twkframe {    
+    float:right;
+    margin-right: 2%;
+    background: #f5f6f5;
+    border-radius: 12px;
 }
 
 img.thumb {
-    width: 100%;
+    max-width: 100%;
 }
 
 h3 {
@@ -90,4 +131,21 @@ a.caption {
 
 #digtable {
     width: 100%;
+}
+
+/*
+ *   DIG PAGE
+ */
+
+body#digBody {
+    padding: 10px 20px;
+}
+
+#diggetform label { 
+    display:inline-block;
+    width: 15em;
+}
+
+#diggetform p {
+    margin: 6px;
 }
